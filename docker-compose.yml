@@ -7,18 +7,37 @@ services:
   #     - 6379:6379
   #   volumes: 
   #     - redis:/data
+  #   networks:
+  #     - reverse-proxy
 
-  # postgres:
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     POSTGRES_DB: ${POSTGRES_DB}
-  #     POSTGRES_USER: ${POSTGRES_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #   ports: 
-  #     - '5432:5432'
-  #   volumes:
-  #     - docker-nest-postgres:/var/lib/postgresql/data
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: 
+      - '5432:5432'
+    volumes:
+      - docker-nest-postgres:/var/lib/postgresql/data
+    networks:
+      - reverse-proxy
+
+  pgadmin:
+    container_name: pgadmin4
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=pgadmin4
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    networks:
+      - reverse-proxy
 
   api:
     container_name: api
@@ -37,9 +56,9 @@ services:
       - /app/node_modules
     ports:
       - 8080:8080
-    # depends_on:
+    depends_on:
     #   - redis
-    #   - postgres
+      - postgres
     networks:
       - reverse-proxy
 
@@ -50,9 +69,7 @@ services:
     build:
       context: ./pet_web
       dockerfile: Dockerfile.dev
-    # restart: unless-stopped
-    # expose:
-    #   - 3000
+    restart: unless-stopped
     ports:
       - 3000:3000
     stdin_open: true

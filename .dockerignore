@@ -1,3 +1,9 @@
+docker-compose.yml
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+dist
+
 /pet
 /pet/*
-docker-compose.yml
