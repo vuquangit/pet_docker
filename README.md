@@ -23,5 +23,16 @@ Run `docker-compose up`
 
 Run `npm run clean` or `docker-compose down -v`
 
+
+### Start service nginx
+
+```
+docker exec nginx nginx -t
+docker exec nginx nginx -s reload
+docker exec nginx service nginx status
+
+docker exec nginx curl localhost 
+```
+
 ## Useful links
 - <https://docs.docker.com>

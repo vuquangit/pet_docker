@@ -20,7 +20,7 @@ services:
       context: ./pet_api
       dockerfile: Dockerfile.dev
       # Only will build development stage from our dockerfile
-      # target: development
+      target: development
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -36,8 +36,6 @@ services:
 
   web:
     container_name: web
-    depends_on: 
-      - api
     build:
       context: ./pet_web
       dockerfile: Dockerfile.dev
@@ -49,27 +47,34 @@ services:
     volumes:
       - ./pet_web:/app
       - /app/node_modules
+    depends_on:
+      - api
     networks:
       - pet-network
     environment:
       - NODE_ENV=development
-  
-  # nginx:
-  #   build: 
-  #     context: nginx
-  #   container_name: nginx
-  #   restart: always
-  #   tty: true
-  #   ports: 
-  #     - "8000:80"
-  #   networks: 
-  #     - pet-network
-  #   depends_on:
-  #      - api
-  #      - web
+
+  nginx:
+    image: nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    restart: always
+    tty: true
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - pet-network
+    depends_on:
+      - api
+      - web
 
 volumes:
   docker-nest-mongo:
+
 
 networks:
   pet-network:
