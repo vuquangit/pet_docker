@@ -1,43 +1,18 @@
 version: '3.8'
 
 services:
-  # redis: # Name of container
-  #   image: redis
-  #   ports:
-  #     - 6379:6379
-  #   volumes: 
-  #     - redis:/data
-  #   networks:
-  #     - reverse-proxy
-
-  postgres:
-    container_name: postgres
-    image: postgres
+  mongo:
+    container_name: mongodb
+    image: mongo
     restart: always
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports: 
-      - '5432:5432'
-    volumes:
-      - docker-nest-postgres:/var/lib/postgresql/data
-    networks:
-      - reverse-proxy
-
-  pgadmin:
-    container_name: pgadmin4
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=pgadmin4
+      MONGODB_DATABASE: pet
     ports:
-      - '5050:80'
-    depends_on:
-      - postgres
+      - 27017:27017
+    volumes:
+      - docker-nest-mongo:/data/db
     networks:
-      - reverse-proxy
+      - pet-network
 
   api:
     container_name: api
@@ -45,9 +20,7 @@ services:
       context: ./pet_api
       dockerfile: Dockerfile.dev
       # Only will build development stage from our dockerfile
-      target: development
-    # env_file:
-    #     - ./pet_api/.env
+      # target: development
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -57,10 +30,9 @@ services:
     ports:
       - 8080:8080
     depends_on:
-    #   - redis
-      - postgres
+      - mongo
     networks:
-      - reverse-proxy
+      - pet-network
 
   web:
     container_name: web
@@ -78,15 +50,27 @@ services:
       - ./pet_web:/app
       - /app/node_modules
     networks:
-      - reverse-proxy
+      - pet-network
     environment:
       - NODE_ENV=development
+  
+  # nginx:
+  #   build: 
+  #     context: nginx
+  #   container_name: nginx
+  #   restart: always
+  #   tty: true
+  #   ports: 
+  #     - "8000:80"
+  #   networks: 
+  #     - pet-network
+  #   depends_on:
+  #      - api
+  #      - web
 
 volumes:
-  docker-nest-postgres:
-  redis:
-    driver: local
+  docker-nest-mongo:
 
 networks:
-  reverse-proxy:
-    name: reverse-proxy
+  pet-network:
+    name: pet-network
